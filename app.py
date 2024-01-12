@@ -1,23 +1,34 @@
 import socketio
 
 # Create a Socket.IO client
-sio = socketio.Client(logger=True, engineio_logger=True)
+sio = socketio.Client()
 
-# Define the event handler for the 'connect' event
 @sio.event
 def connect():
     print('Connection established')
-    # Emit a 'register' event with the 'ACB' symbol to the server
+    # Emit a 'register' event with the data 'ACB'
     sio.emit('register', 'ACB')
-    # After emitting the register event, we'll disconnect
-    sio.disconnect()
+    sio.emit('register', 'FPT')
+    sio.emit('register', 'HPG')
 
-# Define the event handler for the 'disconnect' event
+
 @sio.event
 def disconnect():
     print('Disconnected from server')
 
-# Connect to the Socket.IO server (defaulting to port 80)
+@sio.on('price-change')
+def on_price_change(data):
+    # This function will be called when a 'price-change' event is received
+    print('Price change received:', data)
+    # Here, you can add any specific logic to handle the price change data
+
+# Connect to the Socket.IO server
 sio.connect('http://192.168.4.166')
 
-# Since we're not using sio.wait(), the script will end after this line.
+# Keep the program running to listen for events
+try:
+    sio.wait()
+except KeyboardInterrupt:
+    # Handle the Ctrl+C interruption
+    print('Interrupted by user, disconnecting...')
+    sio.disconnect()
